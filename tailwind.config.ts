@@ -8,10 +8,17 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      colors: {
-        brand: {
-          purple: '#7C3AED',
-          amber: '#F59E0B',
+      boxShadow: {
+        card: '0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.04)',
+        'card-md': '0 4px 12px -2px rgba(0,0,0,0.08), 0 2px 6px -3px rgba(0,0,0,0.05)',
+        wallet: '0 8px 32px -8px rgba(0,0,0,0.24), 0 4px 16px -4px rgba(0,0,0,0.12)',
+      },
+      animation: {
+        'progress': 'progress-in 0.6s ease-out both',
+      },
+      keyframes: {
+        'progress-in': {
+          from: { width: '0%' },
         },
       },
     },

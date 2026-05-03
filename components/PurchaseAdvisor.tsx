@@ -9,12 +9,23 @@ interface PurchaseAdvisorProps {
   userCards: UserCard[]
 }
 
+// ── Category chips ──────────────────────────────────────────────────────────
+const CATEGORY_EXAMPLES: { label: string; example: string }[] = [
+  { label: 'Dining',           example: 'dinner at a restaurant' },
+  { label: 'Groceries',        example: 'groceries at Whole Foods' },
+  { label: 'Entertainment',    example: 'concert tickets' },
+  { label: 'Streaming',        example: 'Netflix subscription' },
+  { label: 'Online Shopping',  example: 'order on Amazon' },
+  { label: 'Gas',              example: 'filling up at a gas station' },
+  { label: 'Travel',           example: 'hotel booking' },
+]
+
 export default function PurchaseAdvisor({ userCards }: PurchaseAdvisorProps) {
   const [description, setDescription] = useState('')
-  const [amount, setAmount] = useState('')
+  const [amount,      setAmount]      = useState('')
   const [result, setResult] = useState<{
-    category: string
-    primary: { preferred_card_id: string; reason: string; category: string } | null
+    category:     string
+    primary:      { preferred_card_id: string; reason: string; category: string } | null
     alternatives: Array<{ preferred_card_id: string; reason: string; category: string }>
   } | null>(null)
 
@@ -28,116 +39,142 @@ export default function PurchaseAdvisor({ userCards }: PurchaseAdvisorProps) {
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleFind()
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleFind() }
   }
 
+  function reset() { setResult(null); setDescription(''); setAmount('') }
+
   return (
-    <div className="space-y-5">
-      {/* Input Form */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-5">
-        <h2 className="text-lg font-semibold text-slate-800 mb-1">Purchase Advisor</h2>
-        <p className="text-sm text-slate-500 mb-4">Describe what you're buying and find out which card to use.</p>
+    <div className="space-y-5 max-w-2xl">
+
+      {/* ── Input form ───────────────────────────────────────── */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-card p-5">
+        <h2 className="text-base font-bold text-slate-900 mb-0.5">Purchase Advisor</h2>
+        <p className="text-sm text-slate-500 mb-5">Describe what you're buying to find the best card to use.</p>
 
         <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">
               What are you buying?
             </label>
             <textarea
               value={description}
-              onChange={e => setDescription(e.target.value)}
+              onChange={e => { setDescription(e.target.value); setResult(null) }}
               onKeyDown={handleKeyDown}
-              placeholder="e.g. dinner at a nice restaurant, Netflix subscription, gas station, hotel for a trip..."
+              placeholder="e.g. dinner at a nice restaurant, Netflix subscription, gas station, hotel for a trip…"
               rows={3}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none bg-white leading-relaxed"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Amount (optional)
-            </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-              <input
-                type="number"
-                value={amount}
-                onChange={e => setAmount(e.target.value)}
-                placeholder="0.00"
-                min="0"
-                step="0.01"
-                className="w-full pl-7 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
+
+          <div className="flex gap-3 items-start">
+            <div className="w-32">
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">
+                Amount (opt.)
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                <input
+                  type="number"
+                  value={amount}
+                  onChange={e => setAmount(e.target.value)}
+                  placeholder="0.00"
+                  min="0"
+                  step="0.01"
+                  className="w-full pl-7 border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white num"
+                />
+              </div>
+            </div>
+
+            <div className="flex-1 flex items-end pb-0.5">
+              <div className="mt-6">
+                <button
+                  onClick={handleFind}
+                  disabled={!description.trim() || activeCardIds.length === 0}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  </svg>
+                  Find Best Card
+                </button>
+              </div>
             </div>
           </div>
-          <button
-            onClick={handleFind}
-            disabled={!description.trim() || activeCardIds.length === 0}
-            className="px-5 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          >
-            Find Best Card
-          </button>
+
           {activeCardIds.length === 0 && (
-            <p className="text-xs text-amber-600">Add cards in the My Cards tab first.</p>
+            <p className="text-xs text-amber-600 font-medium">Add cards in the My Cards tab first.</p>
           )}
         </div>
+
+        {/* Category quick-fill chips */}
+        {!result && (
+          <div className="mt-5 pt-4 border-t border-slate-100">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2.5">Quick examples</div>
+            <div className="flex flex-wrap gap-2">
+              {CATEGORY_EXAMPLES.map(cat => (
+                <button
+                  key={cat.label}
+                  onClick={() => { setDescription(cat.example); setResult(null) }}
+                  className="px-3 py-1.5 text-xs font-medium text-slate-600 bg-slate-50 hover:bg-blue-50 hover:text-blue-700 border border-slate-200 hover:border-blue-200 rounded-full transition-colors"
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Result */}
+      {/* ── Result ───────────────────────────────────────────── */}
       {result && (
-        <div className="space-y-4">
-          {/* Detected Category */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Detected Category</span>
-              <span className="px-2 py-0.5 rounded-full text-sm font-medium bg-purple-100 text-purple-700 capitalize">
-                {result.category}
-              </span>
-            </div>
+        <div className="space-y-3">
+          {/* Detected category */}
+          <div className="flex items-center gap-3 px-4 py-3 bg-white rounded-xl border border-slate-200 shadow-card">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Category detected</span>
+            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 capitalize border border-slate-200">
+              {result.category}
+            </span>
             {amount && (
-              <p className="text-xs text-slate-400 mt-1">Purchase amount: ${parseFloat(amount).toFixed(2)}</p>
+              <span className="text-xs text-slate-400 ml-auto num">${parseFloat(amount).toFixed(2)}</span>
             )}
           </div>
 
-          {/* Primary Recommendation */}
+          {/* Primary recommendation */}
           {result.primary ? (
-            <div className="bg-green-50 border border-green-200 rounded-xl p-5">
-              <div className="flex items-start gap-3">
-                <div className="text-2xl">✅</div>
-                <div className="flex-1">
-                  <div className="text-xs font-semibold uppercase tracking-wide text-green-600 mb-1">Recommended Card</div>
-                  <div className="text-lg font-bold text-green-800 mb-2">
-                    {getCardName(result.primary.preferred_card_id)}
-                  </div>
-                  <p className="text-sm text-green-700">{result.primary.reason}</p>
+            <div className="bg-white rounded-xl border border-emerald-200 shadow-card overflow-hidden">
+              <div className="px-5 py-3 bg-emerald-600 flex items-center gap-2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                <span className="text-xs font-bold uppercase tracking-widest text-white">Recommended Card</span>
+              </div>
+              <div className="p-5">
+                <div className="text-lg font-bold text-slate-900 mb-2">
+                  {getCardName(result.primary.preferred_card_id)}
                 </div>
+                <p className="text-sm text-slate-600 leading-relaxed">{result.primary.reason}</p>
               </div>
             </div>
           ) : (
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
-              <div className="flex items-start gap-3">
-                <div className="text-2xl">💡</div>
-                <div>
-                  <div className="text-sm font-semibold text-amber-800 mb-1">No specific recommendation</div>
-                  <p className="text-sm text-amber-700">
-                    We don't have a specific recommendation for this category with your current cards. Consider using a flat-rate cash back card, or add more cards to get better recommendations.
-                  </p>
-                </div>
-              </div>
+              <div className="text-sm font-semibold text-amber-800 mb-1">No specific recommendation</div>
+              <p className="text-sm text-amber-700 leading-relaxed">
+                No specific recommendation for this category with your current cards. Consider adding more cards or using a flat-rate cash back card.
+              </p>
             </div>
           )}
 
-          {/* Alternative Cards */}
+          {/* Alternatives */}
           {result.alternatives.length > 0 && (
-            <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4">
-              <div className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-3">Alternative Options</div>
+            <div className="bg-white rounded-xl border border-slate-200 shadow-card p-4">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">Also consider</div>
               <div className="space-y-2">
                 {result.alternatives.map((alt, i) => (
-                  <div key={i} className="p-3 bg-slate-50 rounded-lg">
-                    <div className="font-medium text-slate-700 text-sm">{getCardName(alt.preferred_card_id)}</div>
-                    <p className="text-xs text-slate-500 mt-0.5">{alt.reason}</p>
+                  <div key={i} className="p-3 bg-slate-50 rounded-lg border border-slate-100">
+                    <div className="font-semibold text-slate-800 text-sm mb-0.5">{getCardName(alt.preferred_card_id)}</div>
+                    <p className="text-xs text-slate-500 leading-relaxed">{alt.reason}</p>
                   </div>
                 ))}
               </div>
@@ -145,34 +182,26 @@ export default function PurchaseAdvisor({ userCards }: PurchaseAdvisorProps) {
           )}
 
           {/* Disclaimer */}
-          <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-            <p className="text-xs text-slate-500 italic">
-              ⚠️ Category coding may vary by merchant. Some purchases at grocery stores or warehouse clubs may not earn bonus rewards. Always verify with your card issuer. This is informational only.
+          <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Category coding varies by merchant. Warehouse clubs, delivery platforms, and third-party apps may not earn bonus rewards. Always verify with your card issuer.
             </p>
           </div>
 
-          {/* Try another */}
           <button
-            onClick={() => { setResult(null); setDescription(''); setAmount('') }}
-            className="text-sm text-purple-600 hover:text-purple-700 font-medium"
+            onClick={reset}
+            className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium"
           >
-            ← Try another purchase
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+            Try another purchase
           </button>
-        </div>
-      )}
-
-      {/* Category guide */}
-      {!result && (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-5">
-          <h3 className="text-sm font-semibold text-slate-700 mb-3">Recognized Categories</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {['Dining', 'Groceries', 'Entertainment', 'Streaming', 'Online Shopping', 'Gas', 'Travel', 'General'].map(cat => (
-              <div key={cat} className="px-3 py-2 bg-slate-50 rounded-lg text-xs text-slate-600 text-center capitalize">
-                {cat}
-              </div>
-            ))}
-          </div>
-          <p className="text-xs text-slate-400 mt-3">The advisor matches keywords from your description to these categories, then recommends the best card from your wallet.</p>
         </div>
       )}
     </div>

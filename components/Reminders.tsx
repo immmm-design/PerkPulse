@@ -6,49 +6,78 @@ interface RemindersProps {
   reminders: Reminder[]
 }
 
-function ReminderCard({ reminder }: { reminder: Reminder }) {
+function ReminderRow({ reminder }: { reminder: Reminder }) {
+  const isToday  = reminder.days_until === 0
+  const critical = reminder.days_until <= 2
+  const urgent   = reminder.days_until <= 5
+
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="font-semibold text-slate-800 text-sm">{reminder.benefit_name}</span>
-          </div>
-          <p className="text-xs text-slate-500 mb-2">{reminder.card_name}</p>
-          <p className="text-sm text-slate-700">{reminder.message}</p>
+    <div className={`bg-white rounded-xl border shadow-card overflow-hidden flex ${
+      isToday  ? 'border-red-300'  :
+      critical ? 'border-rose-200' :
+      urgent   ? 'border-amber-200':
+                 'border-slate-200'
+    }`}>
+      {/* Left countdown block */}
+      <div className={`shrink-0 w-16 flex flex-col items-center justify-center py-4 ${
+        isToday  ? 'bg-red-600'    :
+        critical ? 'bg-rose-500'   :
+        urgent   ? 'bg-amber-500'  :
+                   'bg-sky-500'
+      }`}>
+        <div className="text-2xl font-bold text-white num leading-none">
+          {isToday ? '!' : reminder.days_until}
         </div>
-        <div className="shrink-0 text-right">
-          <div className={`text-2xl font-bold ${
-            reminder.days_until <= 0 ? 'text-red-600' :
-            reminder.days_until <= 5 ? 'text-red-500' :
-            reminder.days_until <= 10 ? 'text-amber-500' :
-            'text-blue-500'
-          }`}>
-            {reminder.days_until <= 0 ? '0' : reminder.days_until}
-          </div>
-          <div className="text-xs text-slate-400">
-            {reminder.days_until <= 0 ? 'today' : `day${reminder.days_until !== 1 ? 's' : ''} left`}
+        <div className="text-[9px] font-semibold uppercase tracking-wide text-white/80 mt-0.5">
+          {isToday ? 'today' : `day${reminder.days_until !== 1 ? 's' : ''}`}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 px-4 py-3 min-w-0">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <div className="font-semibold text-slate-900 text-sm truncate">{reminder.benefit_name}</div>
+            <div className="text-xs text-slate-500 mt-0.5 truncate">{reminder.card_name}</div>
           </div>
         </div>
+        <p className="text-xs text-slate-600 mt-2 leading-relaxed">{reminder.message}</p>
       </div>
     </div>
   )
 }
 
-function EmptySection({ label }: { label: string }) {
+function SectionHeader({ label, color, count, description }: {
+  label: string; color: string; count: number; description: string
+}) {
   return (
-    <div className="p-4 text-center text-slate-400 bg-white rounded-xl border border-slate-100 border-dashed">
-      <p className="text-sm">No {label.toLowerCase()} reminders right now.</p>
+    <div className="flex items-center gap-2.5 mb-3">
+      <div className={`w-2.5 h-2.5 rounded-full ${color} shrink-0`} />
+      <h2 className="text-sm font-bold text-slate-800">{label}</h2>
+      {count > 0 && (
+        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+          color.includes('red')   ? 'bg-red-50 text-red-700 border-red-200'    :
+          color.includes('rose')  ? 'bg-rose-50 text-rose-700 border-rose-200' :
+          color.includes('amber') ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                    'bg-sky-50 text-sky-700 border-sky-200'
+        }`}>
+          {count}
+        </span>
+      )}
+      <span className="text-[11px] text-slate-400">{description}</span>
+    </div>
+  )
+}
+
+function EmptyRow({ label }: { label: string }) {
+  return (
+    <div className="px-4 py-3 bg-white rounded-xl border border-dashed border-slate-200 text-center text-xs text-slate-400">
+      No {label} reminders right now.
     </div>
   )
 }
 
 export default function Reminders({ reminders }: RemindersProps) {
-  const highUrgency = reminders.filter(r => r.urgency === 'high')
-  const mediumUrgency = reminders.filter(r => r.urgency === 'medium')
-  const lowUrgency = reminders.filter(r => r.urgency === 'low')
-
-  // Deduplicate by benefit_id (show one reminder per benefit)
   const dedupeByBenefit = (list: Reminder[]) => {
     const seen = new Set<string>()
     return list.filter(r => {
@@ -58,86 +87,73 @@ export default function Reminders({ reminders }: RemindersProps) {
     })
   }
 
-  const highList = dedupeByBenefit(highUrgency)
-  const mediumList = dedupeByBenefit(mediumUrgency)
-  const lowList = dedupeByBenefit(lowUrgency)
+  const highList   = dedupeByBenefit(reminders.filter(r => r.urgency === 'high'))
+  const mediumList = dedupeByBenefit(reminders.filter(r => r.urgency === 'medium'))
+  const lowList    = dedupeByBenefit(reminders.filter(r => r.urgency === 'low'))
 
   if (reminders.length === 0) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-10 text-center">
-        <div className="text-4xl mb-3">🔔</div>
-        <h3 className="text-lg font-semibold text-slate-700 mb-2">No reminders</h3>
-        <p className="text-slate-500 text-sm">Add cards and their benefits will appear here with upcoming expiration reminders.</p>
+      <div className="flex flex-col items-center justify-center py-24 text-center">
+        <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center mb-4">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+        </div>
+        <h3 className="text-base font-bold text-slate-800 mb-1">All clear</h3>
+        <p className="text-sm text-slate-500 max-w-xs">
+          No upcoming reminders. Add cards and track benefits to receive expiration alerts.
+        </p>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      {/* High Urgency */}
+    <div className="space-y-8">
+
+      {/* High urgency */}
       <div>
-        <div className="flex items-center gap-2 mb-3">
-          <div className="w-3 h-3 rounded-full bg-red-500"></div>
-          <h2 className="text-base font-semibold text-red-700">High Urgency</h2>
-          {highList.length > 0 && (
-            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700">
-              {highList.length}
-            </span>
-          )}
-          <span className="text-xs text-slate-400 ml-1">expires within 5 days</span>
-        </div>
-        {highList.length > 0 ? (
-          <div className="space-y-2">
-            {highList.map(r => <ReminderCard key={r.reminder_id} reminder={r} />)}
-          </div>
-        ) : (
-          <EmptySection label="high urgency" />
-        )}
+        <SectionHeader
+          label="Urgent"
+          color="bg-rose-500"
+          count={highList.length}
+          description="expiring within 5 days"
+        />
+        {highList.length > 0
+          ? <div className="space-y-2">{highList.map(r => <ReminderRow key={r.reminder_id} reminder={r} />)}</div>
+          : <EmptyRow label="urgent" />
+        }
       </div>
 
-      {/* Medium Urgency */}
+      {/* Medium urgency */}
       <div>
-        <div className="flex items-center gap-2 mb-3">
-          <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-          <h2 className="text-base font-semibold text-amber-700">Medium Urgency</h2>
-          {mediumList.length > 0 && (
-            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700">
-              {mediumList.length}
-            </span>
-          )}
-          <span className="text-xs text-slate-400 ml-1">expires in 6–10 days</span>
-        </div>
-        {mediumList.length > 0 ? (
-          <div className="space-y-2">
-            {mediumList.map(r => <ReminderCard key={r.reminder_id} reminder={r} />)}
-          </div>
-        ) : (
-          <EmptySection label="medium urgency" />
-        )}
+        <SectionHeader
+          label="Coming Up"
+          color="bg-amber-500"
+          count={mediumList.length}
+          description="6–10 days away"
+        />
+        {mediumList.length > 0
+          ? <div className="space-y-2">{mediumList.map(r => <ReminderRow key={r.reminder_id} reminder={r} />)}</div>
+          : <EmptyRow label="medium-urgency" />
+        }
       </div>
 
-      {/* Low Urgency */}
+      {/* Low urgency */}
       <div>
-        <div className="flex items-center gap-2 mb-3">
-          <div className="w-3 h-3 rounded-full bg-blue-400"></div>
-          <h2 className="text-base font-semibold text-blue-700">Low Urgency</h2>
-          {lowList.length > 0 && (
-            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">
-              {lowList.length}
-            </span>
-          )}
-          <span className="text-xs text-slate-400 ml-1">more than 10 days away</span>
-        </div>
-        {lowList.length > 0 ? (
-          <div className="space-y-2">
-            {lowList.map(r => <ReminderCard key={r.reminder_id} reminder={r} />)}
-          </div>
-        ) : (
-          <EmptySection label="low urgency" />
-        )}
+        <SectionHeader
+          label="On the Horizon"
+          color="bg-sky-400"
+          count={lowList.length}
+          description="more than 10 days away"
+        />
+        {lowList.length > 0
+          ? <div className="space-y-2">{lowList.map(r => <ReminderRow key={r.reminder_id} reminder={r} />)}</div>
+          : <EmptyRow label="low-urgency" />
+        }
       </div>
 
-      <p className="text-xs text-slate-400 italic text-center">
+      <p className="text-[11px] text-slate-400 italic text-center">
         Reminders are based on benefit deadlines for your tracked cards. Verify expiration rules in your issuer portal.
       </p>
     </div>

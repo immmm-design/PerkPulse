@@ -1,12 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import type { UserCard } from '@/lib/types'
+import type { UserCard, CardSettingsMap } from '@/lib/types'
 import { CARDS } from '@/lib/data'
 import { detectPurchaseCategory, recommendCard, getCardName } from '@/lib/purchaseAdvisor'
 
 interface PurchaseAdvisorProps {
-  userCards: UserCard[]
+  userCards:    UserCard[]
+  cardSettings: CardSettingsMap
 }
 
 // ── Category chips ──────────────────────────────────────────────────────────
@@ -20,13 +21,14 @@ const CATEGORY_EXAMPLES: { label: string; example: string }[] = [
   { label: 'Travel',           example: 'hotel booking' },
 ]
 
-export default function PurchaseAdvisor({ userCards }: PurchaseAdvisorProps) {
+export default function PurchaseAdvisor({ userCards, cardSettings }: PurchaseAdvisorProps) {
   const [description, setDescription] = useState('')
   const [amount,      setAmount]      = useState('')
   const [result, setResult] = useState<{
-    category:     string
-    primary:      { preferred_card_id: string; reason: string; category: string } | null
-    alternatives: Array<{ preferred_card_id: string; reason: string; category: string }>
+    category:        string
+    primary:         { preferred_card_id: string; reason: string; category: string } | null
+    alternatives:    Array<{ preferred_card_id: string; reason: string; category: string }>
+    boaSetupWarning: boolean
   } | null>(null)
 
   const activeCardIds = userCards.filter(uc => uc.active).map(uc => uc.card_id)
@@ -34,8 +36,8 @@ export default function PurchaseAdvisor({ userCards }: PurchaseAdvisorProps) {
   function handleFind() {
     if (!description.trim()) return
     const category = detectPurchaseCategory(description)
-    const { primary, alternatives } = recommendCard(category, activeCardIds)
-    setResult({ category, primary, alternatives })
+    const { primary, alternatives, boaSetupWarning } = recommendCard(category, activeCardIds, cardSettings)
+    setResult({ category, primary, alternatives, boaSetupWarning })
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -178,6 +180,20 @@ export default function PurchaseAdvisor({ userCards }: PurchaseAdvisorProps) {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* BofA setup warning */}
+          {result.boaSetupWarning && (
+            <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+              <p className="text-xs text-amber-700 leading-relaxed">
+                Your Bank of America Customized Cash 3% category is not configured. Go to My Cards to set it up for accurate recommendations.
+              </p>
             </div>
           )}
 

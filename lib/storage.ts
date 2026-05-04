@@ -1,12 +1,13 @@
 'use client'
 
-import type { UserCard, UsageEntry, OfferUpdate } from './types'
+import type { UserCard, UsageEntry, OfferUpdate, CardSettingsMap } from './types'
 import { SEED_OFFER_UPDATES } from './data'
 
 const KEYS = {
-  userCards: 'perkpulse_user_cards',
-  usageLog: 'perkpulse_usage_log',
+  userCards:    'perkpulse_user_cards',
+  usageLog:     'perkpulse_usage_log',
   offerUpdates: 'perkpulse_offer_updates',
+  cardSettings: 'perkpulse_card_settings',
 }
 
 function safeGet<T>(key: string, fallback: T): T {
@@ -66,4 +67,19 @@ export function clearUsageForBenefit(benefit_id: string, periodStart: string, pe
     return e.usage_date < periodStart || e.usage_date > periodEnd
   })
   saveUsageLog(filtered)
+}
+
+export function getCardSettings(): CardSettingsMap {
+  return safeGet<CardSettingsMap>(KEYS.cardSettings, {})
+}
+
+export function saveCardSettings(settings: CardSettingsMap) {
+  safeSet(KEYS.cardSettings, settings)
+}
+
+export function updateCardSetting(card_id: string, key: string, value: string): CardSettingsMap {
+  const settings = getCardSettings()
+  settings[card_id] = { ...(settings[card_id] ?? {}), [key]: value }
+  saveCardSettings(settings)
+  return settings
 }

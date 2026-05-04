@@ -1,15 +1,17 @@
 'use client'
 
-import type { Benefit, BenefitStatus, ActionPlan, UserCard } from '@/lib/types'
+import type { Benefit, BenefitStatus, ActionPlan, UserCard, CardSettingsMap } from '@/lib/types'
 import { CARDS } from '@/lib/data'
 
 interface DashboardProps {
   activeBenefits:  Benefit[]
   benefitStatuses: BenefitStatus[]
   userCards:       UserCard[]
+  cardSettings:    CardSettingsMap
   actionPlan:      ActionPlan | null
   planLoading:     boolean
   onGeneratePlan:  () => void
+  onGoToCards:     () => void
   today:           Date
 }
 
@@ -106,9 +108,11 @@ export default function Dashboard({
   activeBenefits,
   benefitStatuses,
   userCards,
+  cardSettings,
   actionPlan,
   planLoading,
   onGeneratePlan,
+  onGoToCards,
 }: DashboardProps) {
 
   const totalAvailable = activeBenefits.reduce((s, b) => s + (parseValue(b.value_amount) ?? 0), 0)
@@ -118,6 +122,9 @@ export default function Dashboard({
 
   const activeCardIds     = userCards.filter(uc => uc.active).map(uc => uc.card_id)
   const activeCardObjects = CARDS.filter(c => activeCardIds.includes(c.card_id))
+
+  const boaNeedsSetup = activeCardIds.includes('boa_customized_cash') &&
+    !cardSettings['boa_customized_cash']?.selected_category
 
   // Hero: find the single most urgent unclaimed benefit
   const urgentStatuses = benefitStatuses
@@ -148,6 +155,29 @@ export default function Dashboard({
 
   return (
     <div className="space-y-6">
+
+      {/* ── BofA setup warning ────────────────────────────────── */}
+      {boaNeedsSetup && (
+        <div className="flex items-start gap-3 px-4 py-3.5 bg-amber-50 border border-amber-200 rounded-xl">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-amber-800">Bank of America 3% category not selected</p>
+            <p className="text-xs text-amber-700 mt-0.5 leading-relaxed">
+              Choose your BofA Customized Cash 3% category to make purchase recommendations accurate.
+            </p>
+          </div>
+          <button
+            onClick={onGoToCards}
+            className="shrink-0 text-xs font-semibold text-amber-800 hover:text-amber-900 underline underline-offset-2"
+          >
+            Set up
+          </button>
+        </div>
+      )}
 
       {/* ── Next Best Action Hero ─────────────────────────────── */}
       {heroBenefit && heroStatus && (

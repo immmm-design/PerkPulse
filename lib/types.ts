@@ -4,6 +4,11 @@ export interface Card {
   card_name: string
   annual_fee: number
   reward_notes: string
+  card_type?: string
+  reward_summary?: string
+  source_url?: string
+  source_checked_at?: string
+  requires_user_settings?: boolean
 }
 
 export interface Benefit {
@@ -20,6 +25,10 @@ export interface Benefit {
   source_type: string
   notes: string
   custom_deadline?: string
+  requires_user_setting?: boolean
+  user_setting_key?: string
+  source_url?: string
+  source_checked_at?: string
 }
 
 export interface UserCard {
@@ -105,4 +114,35 @@ export interface ParsedBenefit {
   plain_english: string
   risk_flags: string[]
   confidence: 'high' | 'medium' | 'low'
+}
+
+export interface CardSettingsMap {
+  [card_id: string]: Record<string, string>
+}
+
+export interface CardSettingOption {
+  value: string
+  label: string
+}
+
+export interface CardSettingDefinition {
+  card_id: string
+  setting_key: string
+  label: string
+  description: string
+  type: 'select' | 'boolean' | 'text'
+  required: boolean
+  options?: CardSettingOption[]
+  reminder_text?: string
+}
+
+export interface AuthUser {
+  id: string
+  email: string
+}
+
+export interface Bank {
+  name: string
+  issuer_key: string
+  gradient: string
 }

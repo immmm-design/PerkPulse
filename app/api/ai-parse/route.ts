@@ -14,7 +14,7 @@ const DEMO_RESULT = {
   merchant_restriction: 'Eligible merchants',
   requires_enrollment: true,
   plain_english: 'Use your card at eligible merchants once per month to receive up to $10 back as a statement credit.',
-  risk_flags: ['Demo mode — AI parsing not active. Set OPENAI_API_KEY for real parsing.'],
+  risk_flags: ['Demo mode — AI parsing not active. Set DEEPSEEK_API_KEY for real parsing.'],
   confidence: 'low' as const,
 }
 
@@ -28,13 +28,16 @@ export async function POST(req: NextRequest) {
 
   const { text } = await req.json()
 
-  if (!process.env.OPENAI_API_KEY) {
+  if (!process.env.DEEPSEEK_API_KEY) {
     return NextResponse.json({ result: DEMO_RESULT, demo: true })
   }
 
   try {
     const { default: OpenAI } = await import('openai')
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+    const openai = new OpenAI({
+      apiKey: process.env.DEEPSEEK_API_KEY,
+      baseURL: 'https://api.deepseek.com/v1',
+    })
 
     const schema = {
       type: 'object',
@@ -58,7 +61,7 @@ export async function POST(req: NextRequest) {
     }
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'deepseek-chat',
       messages: [
         {
           role: 'system',

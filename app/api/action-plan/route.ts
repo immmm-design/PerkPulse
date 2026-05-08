@@ -21,13 +21,16 @@ export async function POST(req: NextRequest) {
 
   const deterministicPlan = generateDeterministicActionPlan(benefits, statuses, today)
 
-  if (!process.env.OPENAI_API_KEY) {
+  if (!process.env.DEEPSEEK_API_KEY) {
     return NextResponse.json({ plan: deterministicPlan, demo: true })
   }
 
   try {
     const { default: OpenAI } = await import('openai')
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+    const openai = new OpenAI({
+      apiKey: process.env.DEEPSEEK_API_KEY,
+      baseURL: 'https://api.deepseek.com/v1',
+    })
 
     const unusedBenefits = statuses.filter(s => s.status === 'unused' || s.status === 'expiring_soon' || s.status === 'partially_used')
 
@@ -70,7 +73,7 @@ Generate a monthly action plan. Be concise, practical, and friendly. Include a d
     }
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'deepseek-chat',
       messages: [{ role: 'user', content: prompt }],
       response_format: {
         type: 'json_schema',

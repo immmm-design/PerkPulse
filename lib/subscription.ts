@@ -26,13 +26,29 @@ export interface SubscriptionRecord {
 
 export async function getUserSubscription(userId: string): Promise<SubscriptionRecord | null> {
   const db = getSupabaseAdmin()
-  const { data, error } = await db
+  const { data } = await db
     .from('subscriptions')
     .select('*')
     .eq('user_id', userId)
+    .maybeSingle()
+
+  if (data) return data as SubscriptionRecord
+
+  // Auto-create a trial row if missing (defensive — handles users who signed up before the trigger was added)
+  const trialStart = new Date()
+  const trialEnd   = new Date(trialStart.getTime() + 30 * 86_400_000)
+  const { data: created } = await db
+    .from('subscriptions')
+    .insert({
+      user_id:             userId,
+      subscription_status: 'trialing',
+      trial_start:         trialStart.toISOString(),
+      trial_end:           trialEnd.toISOString(),
+    })
+    .select()
     .single()
-  if (error || !data) return null
-  return data as SubscriptionRecord
+
+  return (created as SubscriptionRecord) ?? null
 }
 
 export async function isUserPremium(userId: string): Promise<boolean> {

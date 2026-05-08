@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerUser } from '@/lib/supabaseServer'
+import { isUserPremium } from '@/lib/subscription'
 
 const DEMO_RESULT = {
   issuer: 'American Express',
@@ -17,6 +19,13 @@ const DEMO_RESULT = {
 }
 
 export async function POST(req: NextRequest) {
+  // Premium gate
+  const user = await getServerUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!(await isUserPremium(user.id))) {
+    return NextResponse.json({ error: 'Premium subscription required' }, { status: 402 })
+  }
+
   const { text } = await req.json()
 
   if (!process.env.OPENAI_API_KEY) {

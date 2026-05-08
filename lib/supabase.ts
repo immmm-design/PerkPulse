@@ -1,6 +1,6 @@
 'use client'
 
-import { createClient } from '@supabase/supabase-js'
+import { createBrowserClient } from '@supabase/ssr'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 let supabaseClient: SupabaseClient | null = null
@@ -12,10 +12,11 @@ export function isSupabaseConfigured(): boolean {
   )
 }
 
+// Browser client that uses cookies for session storage — works with SSR auth
 export function getSupabase(): SupabaseClient | null {
   if (!isSupabaseConfigured()) return null
   if (supabaseClient) return supabaseClient
-  supabaseClient = createClient(
+  supabaseClient = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )

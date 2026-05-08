@@ -1,8 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type { Benefit, BenefitStatus, ActionPlan } from '@/lib/types'
 import { generateDeterministicActionPlan } from '@/lib/actionPlan'
+import { getServerUser } from '@/lib/supabaseServer'
+import { isUserPremium } from '@/lib/subscription'
 
 export async function POST(req: NextRequest) {
+  // Premium gate
+  const user = await getServerUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!(await isUserPremium(user.id))) {
+    return NextResponse.json({ error: 'Premium subscription required' }, { status: 402 })
+  }
+
   const { benefits, statuses, today: todayStr } = await req.json() as {
     benefits: Benefit[]
     statuses: BenefitStatus[]

@@ -1,17 +1,16 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import type { UserCard, UsageEntry, BenefitStatus, ActionPlan, CardSettingsMap } from '@/lib/types'
 import { BENEFITS } from '@/lib/data'
 import { getUserCards, getUsageLog, getCardSettings } from '@/lib/db'
 import { getBenefitStatus, calculateUsedAmount, getPeriodStart, getDeadline } from '@/lib/benefitEngine'
-import { getAllUpcomingReminders } from '@/lib/reminderEngine'
 import { useSubscription } from '@/lib/subscriptionContext'
 import { format } from 'date-fns'
 import Dashboard from '@/components/Dashboard'
 import SubscriptionCard from '@/components/SubscriptionCard'
 import UpgradeGate from '@/components/UpgradeGate'
-import Link from 'next/link'
 
 export default function DashboardPage() {
   const [userCards,    setUserCards]    = useState<UserCard[]>([])
@@ -21,6 +20,7 @@ export default function DashboardPage() {
   const [planLoading,  setPlanLoading]  = useState(false)
   const [mounted,      setMounted]      = useState(false)
   const { isPremium, loading: subLoading } = useSubscription()
+  const router = useRouter()
 
   const today = new Date()
 
@@ -79,7 +79,7 @@ export default function DashboardPage() {
           actionPlan={actionPlan}
           planLoading={planLoading}
           onGeneratePlan={fetchActionPlan}
-          onGoToCards={() => window.location.href = '/cards'}
+          onGoToCards={() => router.push('/cards')}
           today={today}
         />
       </UpgradeGate>

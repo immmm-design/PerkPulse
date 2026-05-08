@@ -1,7 +1,9 @@
 'use client'
 
-import { useState } from 'react'
-import { signInWithEmail } from '@/lib/auth'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
+import { signInWithEmail, getUser, onAuthStateChange } from '@/lib/auth'
 import { isSupabaseConfigured } from '@/lib/supabase'
 
 function LogoMark() {
@@ -23,7 +25,22 @@ export default function LoginPage() {
   const [sent,     setSent]     = useState(false)
   const [error,    setError]    = useState('')
 
-  const configured = isSupabaseConfigured()
+  const router       = useRouter()
+  const searchParams = useSearchParams()
+  const configured   = isSupabaseConfigured()
+
+  // Redirect to dashboard if already logged in; show error from URL
+  useEffect(() => {
+    if (searchParams.get('error') === 'auth_failed') {
+      setError('That magic link expired or was already used. Please request a new one.')
+    }
+    if (configured) {
+      getUser().then(user => { if (user) router.replace('/dashboard') })
+      const unsub = onAuthStateChange(user => { if (user) router.replace('/dashboard') })
+      return unsub
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()

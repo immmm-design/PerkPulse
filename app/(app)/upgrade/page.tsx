@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useSubscription } from '@/lib/subscriptionContext'
 import { useRouter } from 'next/navigation'
@@ -28,11 +28,10 @@ export default function UpgradePage() {
   const { subscription, isPremium, trialDays } = useSubscription()
   const router = useRouter()
 
-  // If user is already premium, redirect back
-  if (isPremium) {
-    router.replace('/dashboard')
-    return null
-  }
+  // If user is already premium, redirect back to dashboard
+  useEffect(() => {
+    if (isPremium) router.replace('/dashboard')
+  }, [isPremium, router])
 
   async function handleCheckout() {
     setLoading(true)

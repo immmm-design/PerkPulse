@@ -4,9 +4,15 @@ import type { AuthUser } from './types'
 export async function signInWithEmail(email: string): Promise<{ error: string | null }> {
   const supabase = getSupabase()
   if (!supabase) return { error: null }
+
+  const origin = typeof window !== 'undefined' ? window.location.origin : ''
+
   const { error } = await supabase.auth.signInWithOtp({
     email,
-    options: { shouldCreateUser: true },
+    options: {
+      shouldCreateUser: true,
+      emailRedirectTo: `${origin}/auth/callback?next=/dashboard`,
+    },
   })
   return { error: error?.message ?? null }
 }

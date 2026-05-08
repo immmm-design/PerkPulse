@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { getServerUser } from '@/lib/supabaseServer'
 
 export const metadata: Metadata = {
   title: 'PerkPulse AI — Stop Losing Credit Card Benefits',
@@ -29,7 +30,10 @@ const HOW_IT_WORKS = [
   { step: '3', title: 'Get AI action plans', body: 'Each month, get a prioritized list of benefits to use before they expire, powered by OpenAI.' },
 ]
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const user = await getServerUser()
+  const isLoggedIn = !!user
+
   return (
     <div className="min-h-screen flex flex-col bg-white">
       {/* Header */}
@@ -48,8 +52,16 @@ export default function LandingPage() {
           </Link>
           <nav className="flex items-center gap-3 sm:gap-4">
             <Link href="/pricing" className="text-sm text-slate-400 hover:text-white transition-colors hidden sm:inline">Pricing</Link>
-            <Link href="/login"   className="text-sm text-slate-400 hover:text-white transition-colors">Sign in</Link>
-            <Link href="/login"   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors">Start free</Link>
+            {isLoggedIn ? (
+              <Link href="/dashboard" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors">
+                Open app
+              </Link>
+            ) : (
+              <>
+                <Link href="/login" className="text-sm text-slate-400 hover:text-white transition-colors">Sign in</Link>
+                <Link href="/login" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors">Start free</Link>
+              </>
+            )}
           </nav>
         </div>
       </header>

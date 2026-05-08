@@ -135,20 +135,44 @@ export default function Dashboard({
 
   const pctUsed = totalAvailable > 0 ? Math.min(100, (totalUsed / totalAvailable) * 100) : 0
 
-  // Empty state
+  // Empty state — first-run onboarding
   if (userCards.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 text-center">
-        <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-5">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="1" y="4" width="22" height="16" rx="3"/>
-            <line x1="1" y1="10" x2="23" y2="10"/>
-          </svg>
+      <div className="space-y-5">
+        <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-6 text-white relative overflow-hidden">
+          <div className="absolute -right-12 -top-12 w-48 h-48 rounded-full bg-white/10 pointer-events-none" />
+          <div className="relative z-10">
+            <p className="text-xs font-bold uppercase tracking-widest text-blue-200 mb-2">Welcome to PerkPulse</p>
+            <h2 className="text-xl font-bold mb-2 leading-tight">Let&apos;s add your first card</h2>
+            <p className="text-sm text-blue-100 mb-5 leading-relaxed max-w-md">
+              PerkPulse tracks the benefits, credits, and deadlines on your credit cards so you never lose value.
+              Add your cards to get started — no account numbers required.
+            </p>
+            <a
+              href="/cards"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-blue-700 hover:bg-blue-50 font-semibold rounded-lg text-sm transition-colors"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Add your first card
+            </a>
+          </div>
         </div>
-        <h2 className="text-lg font-bold text-slate-800 mb-2">No cards in your wallet</h2>
-        <p className="text-sm text-slate-500 max-w-xs">
-          Go to <strong className="text-slate-700">My Cards</strong> to add your credit cards and start tracking benefits.
-        </p>
+
+        <div className="grid sm:grid-cols-3 gap-3">
+          {[
+            { title: 'Track every credit',     body: 'Monthly, quarterly, and annual benefits with their reset rules.' },
+            { title: 'Get reminders',           body: 'Know before benefits expire so you never lose value.' },
+            { title: 'AI action plans',         body: 'Get a prioritized list of what to do this month.' },
+          ].map(c => (
+            <div key={c.title} className="bg-white rounded-xl border border-slate-200 p-4 shadow-card">
+              <p className="text-sm font-bold text-slate-900 mb-1">{c.title}</p>
+              <p className="text-xs text-slate-500 leading-relaxed">{c.body}</p>
+            </div>
+          ))}
+        </div>
       </div>
     )
   }

@@ -3,3 +3,4 @@
 node_modules/
 .next/
 perk_pulse.db
+*.tsbuildinfo

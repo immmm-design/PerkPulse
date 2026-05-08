@@ -7,10 +7,14 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     scroll-behavior: smooth;
+    /* Prevent text size adjustment on mobile orientation change */
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
     @apply bg-slate-50 text-slate-900;
+    /* iOS safe area support */
+    padding-top: env(safe-area-inset-top);
   }
 
   /* Thin custom scrollbar */
@@ -18,6 +22,22 @@
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 999px; }
   ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+  /* Better tap highlight on mobile */
+  * { -webkit-tap-highlight-color: transparent; }
+
+  /* Minimum touch target size */
+  button, a, [role="button"] { min-height: 44px; }
+}
+
+@layer components {
+  /* Prose styles for marketing/legal pages */
+  .prose h1 { @apply text-3xl font-bold text-slate-900 mb-4 mt-0; }
+  .prose h2 { @apply text-xl font-bold text-slate-900 mt-10 mb-3; }
+  .prose p  { @apply text-slate-600 leading-relaxed mb-4; }
+  .prose ul { @apply list-disc list-inside space-y-1.5 mb-4 text-slate-600; }
+  .prose li { @apply leading-relaxed; }
+  .prose strong { @apply text-slate-900 font-semibold; }
 }
 
 @layer utilities {
@@ -29,4 +49,8 @@
 
   /* Tabular numbers for financial data */
   .num { font-variant-numeric: tabular-nums; }
+
+  /* iOS safe area utilities */
+  .safe-area-bottom { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+  .safe-area-top    { padding-top:    env(safe-area-inset-top); }
 }

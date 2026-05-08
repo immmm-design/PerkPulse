@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import type { CardSettingsMap } from '@/lib/types'
 import { CARD_SETTINGS_DEFINITIONS } from '@/lib/data'
-import { updateCardSetting } from '@/lib/storage'
+import { upsertCardSetting } from '@/lib/db'
 
 interface CardSettingsPanelProps {
   card_id: string
@@ -21,7 +21,11 @@ export default function CardSettingsPanel({ card_id, cardSettings, onUpdate, com
   const currentSettings = cardSettings[card_id] ?? {}
 
   function handleChange(key: string, value: string) {
-    const updated = updateCardSetting(card_id, key, value)
+    // Persist to Supabase/localStorage in the background
+    upsertCardSetting(card_id, key, value).catch(() => {})
+    // Update local state immediately
+    const current = cardSettings[card_id] ?? {}
+    const updated = { ...cardSettings, [card_id]: { ...current, [key]: value } }
     onUpdate(updated)
     setSaved(false)
   }

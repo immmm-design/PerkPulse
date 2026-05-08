@@ -7,10 +7,11 @@ import { format } from 'date-fns'
 import CardSettingsPanel from './CardSettingsPanel'
 
 interface MyCardsProps {
-  userCards:    UserCard[]
-  cardSettings: CardSettingsMap
-  onUpdate:     (cards: UserCard[]) => void
+  userCards:        UserCard[]
+  cardSettings:     CardSettingsMap
+  onUpdate:         (cards: UserCard[]) => void
   onSettingsUpdate: (settings: CardSettingsMap) => void
+  maxCards?:        number
 }
 
 type AddStep = 'browse' | 'bank' | 'settings'
@@ -57,7 +58,7 @@ function CardVisual({ card, nickname }: { card: (typeof CARDS)[number]; nickname
   )
 }
 
-export default function MyCards({ userCards, cardSettings, onUpdate, onSettingsUpdate }: MyCardsProps) {
+export default function MyCards({ userCards, cardSettings, onUpdate, onSettingsUpdate, maxCards }: MyCardsProps) {
   const [addStep,      setAddStep]      = useState<AddStep>('browse')
   const [selectedBank, setSelectedBank] = useState('')
   const [pendingCardId, setPendingCardId] = useState('')
@@ -232,7 +233,9 @@ export default function MyCards({ userCards, cardSettings, onUpdate, onSettingsU
                       {!alreadyAdded && (
                         <button
                           onClick={() => handleSelectCard(card.card_id)}
-                          className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors"
+                          disabled={!!maxCards && userCards.length >= maxCards}
+                          title={maxCards && userCards.length >= maxCards ? 'Upgrade to add more cards' : undefined}
+                          className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="12" y1="5" x2="12" y2="19"/>
